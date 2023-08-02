@@ -77,11 +77,6 @@ jobs:
         WASM_FILE=$(ls dist/*.wasm)
         wasm-opt -O4 "$WASM_FILE" -o "$WASM_FILE"
 
-    - name: Bundle pages
-      run: |
-        set -eux
-        mkdir -p ./vr.jf.id.au/dist/vr.jf.id.au/htdocs
-        mv ./dist ./vr.jf.id.au/dist/vr.jf.id.au/htdocs/livesplit
     - name: Upload to vr.jf.id.au
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
@@ -89,4 +84,5 @@ jobs:
         protocol: ftps
         username: if0_34708249
         password: ${{ secrets.IF_FTP_PASSWORD }}
-        local-dir: ./pages/dist/vr.jf.id.au/
+        local-dir: ./dist/
+        server-dir: ./vr.jf.id.au/htdocs/livesplit/
