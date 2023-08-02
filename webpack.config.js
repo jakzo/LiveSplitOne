@@ -102,23 +102,23 @@ export default async (env, argv) => {
                 new HtmlInlineScriptPlugin({
                     scriptMatchPattern: ['^bundle.js$'],
                 }),
-                new WorkboxPlugin.GenerateSW({
-                    clientsClaim: true,
-                    skipWaiting: true,
-                    maximumFileSizeToCacheInBytes: 100 * 1024 * 1024,
-                    exclude: [
-                        /^assets/,
-                        /\.LICENSE\.txt$/,
-                    ],
+                // new WorkboxPlugin.GenerateSW({
+                //     clientsClaim: true,
+                //     skipWaiting: true,
+                //     maximumFileSizeToCacheInBytes: 100 * 1024 * 1024,
+                //     exclude: [
+                //         /^assets/,
+                //         /\.LICENSE\.txt$/,
+                //     ],
 
-                    runtimeCaching: [{
-                        urlPattern: (context) => {
-                            return self.origin === context.url.origin &&
-                                context.url.pathname.startsWith("/assets/");
-                        },
-                        handler: "CacheFirst",
-                    }],
-                })
+                //     runtimeCaching: [{
+                //         urlPattern: (context) => {
+                //             return self.origin === context.url.origin &&
+                //                 context.url.pathname.startsWith("/assets/");
+                //         },
+                //         handler: "CacheFirst",
+                //     }],
+                // })
             ] : []),
             ...(!isProduction ? [new ReactRefreshWebpackPlugin()] : [])
         ],
