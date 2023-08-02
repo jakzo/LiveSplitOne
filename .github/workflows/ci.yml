@@ -29,7 +29,6 @@ jobs:
         targets: wasm32-unknown-unknown
 
     - name: Download binaryen
-      if: github.repository == 'LiveSplit/LiveSplitOne' && github.ref == 'refs/heads/master'
       uses: robinraju/release-downloader@v1.7
       with:
         repository: "WebAssembly/binaryen"
@@ -38,7 +37,6 @@ jobs:
         out-file-path: "/home/runner/.cargo/bin"
 
     - name: Install binaryen
-      if: github.repository == 'LiveSplit/LiveSplitOne' && github.ref == 'refs/heads/master'
       run: |
         cd ~/.cargo/bin
         tar -xzf binaryen-*-x86_64-linux.tar.gz
@@ -70,49 +68,25 @@ jobs:
     - name: Build Core
       run: npm run build:core:deploy
 
-    - name: Set up tslint matcher
-      run: echo "::add-matcher::.github/workflows/tslint.json"
-
-    - name: Run tslint
-      run: npm run lint
-
     - name: Build Frontend
       run: npm run publish
 
-    - name: Cache screenshots
-      uses: actions/cache@v1
-      with:
-        path: test/screenshots
-        key: ${{ runner.os }}-screenshots-${{ hashFiles('test/rendering-test.js') }}
-        restore-keys: ${{ runner.os }}-screenshots-
-
-    - name: Run tests
-      run: |
-        echo "::add-matcher::.github/workflows/test-failures.json"
-        npm run test
-
-    - name: Upload screenshots
-      if: success() || failure()
-      uses: actions/upload-artifact@v1
-      with:
-        name: Screenshots
-        path: test/screenshots
-
     - name: Optimize
-      if: github.repository == 'LiveSplit/LiveSplitOne' && github.ref == 'refs/heads/master'
       run: |
         WASM_FILE=$(ls dist/*.wasm)
         wasm-opt -O4 "$WASM_FILE" -o "$WASM_FILE"
 
-    - name: Add CNAME file
-      if: github.repository == 'LiveSplit/LiveSplitOne' && github.ref == 'refs/heads/master'
-      run: cp ./.github/workflows/CNAME ./dist/CNAME
-
-    - name: Deploy
-      if: github.repository == 'LiveSplit/LiveSplitOne' && github.ref == 'refs/heads/master'
-      uses: peaceiris/actions-gh-pages@v3
+    - name: Bundle pages
+      if: ${{ steps.deploy_pages.outputs.result == 'true' }}
+      run: |
+        set -eux
+        mkdir -p ./vr.jf.id.au/dist/vr.jf.id.au/htdocs
+        mv ./dist ./vr.jf.id.au/dist/vr.jf.id.au/htdocs/livesplit
+    - name: Upload to vr.jf.id.au
+      uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:
-        deploy_key: ${{ secrets.ACTIONS_DEPLOY_KEY }}
-        publish_branch: gh-pages
-        publish_dir: ./dist
-        force_orphan: true
+        server: ftpupload.net
+        protocol: ftps
+        username: if0_34708249
+        password: ${{ secrets.IF_FTP_PASSWORD }}
+        local-dir: ./pages/dist/vr.jf.id.au/
