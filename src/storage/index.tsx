@@ -1,6 +1,7 @@
 import { openDB, IDBPDatabase } from "idb";
 import { Option, assert } from "../util/OptionUtil";
 import { RunRef, Run } from "../livesplit-core";
+import { bonelabLss } from "../util/BonelabSplits";
 
 export type HotkeyConfigSettings = unknown;
 export type LayoutSettings = unknown;
@@ -69,7 +70,7 @@ async function getDb(): Promise<IDBPDatabase<unknown>> {
                         autoIncrement: true,
                     });
 
-                    const splitsString = localStorage.getItem("splits");
+                    const splitsString = localStorage.getItem("splits") ?? bonelabLss;
                     if (splitsString) {
                         const splits = new TextEncoder().encode(splitsString);
                         const splitsInfo = parseSplitsAndGetInfo(splits);
