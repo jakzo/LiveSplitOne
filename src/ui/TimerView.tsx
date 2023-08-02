@@ -41,6 +41,8 @@ interface Callbacks {
 
 export class TimerView extends React.Component<Props, State> {
     private connection: Option<WebSocket>;
+    private connectTimeout: Option<number>;
+    private isAutoconnecting: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -51,8 +53,15 @@ export class TimerView extends React.Component<Props, State> {
         };
     }
 
+    componentDidMount() {
+        this.scheduleAutoConnect();
+    }
+
     componentWillUnmount() {
         this.connection?.close();
+        if (this.connectTimeout) {
+            clearTimeout(this.connectTimeout);
+        }
     }
 
     public render() {
@@ -172,7 +181,7 @@ export class TimerView extends React.Component<Props, State> {
                     <button onClick={(_) => this.connectToServerOrDisconnect()}>
                         {
                             (() => {
-                                const connectionState = this.connection?.readyState ?? WebSocket.CLOSED;
+                                const connectionState = (this.isAutoconnecting ? null : this.connection?.readyState) ?? WebSocket.CLOSED;
                                 switch (connectionState) {
                                     case WebSocket.OPEN:
                                         return <div>
@@ -180,7 +189,7 @@ export class TimerView extends React.Component<Props, State> {
                                         </div>;
                                     case WebSocket.CLOSED:
                                         return <div>
-                                            <i className="fa fa-desktop" aria-hidden="true" /> Connect to Server
+                                            <i className="fa fa-desktop" aria-hidden="true" /> Select IP
                                         </div>;
                                     case WebSocket.CONNECTING:
                                         return <div>Connecting...</div>;
@@ -222,27 +231,50 @@ export class TimerView extends React.Component<Props, State> {
         }
     }
 
+    private scheduleAutoConnect() {
+        this.connectTimeout = window.setTimeout(() => this.connectToIp("127.0.0.1", true), 5000);
+    }
+
     private connectToServerOrDisconnect() {
         if (this.connection) {
-            if (this.connection.readyState === WebSocket.OPEN) {
-                this.connection.close();
-                this.forceUpdate();
+            if (this.isAutoconnecting) {
+                try {
+                    this.connection.close();
+                    this.connection = null;
+                } catch {}
+            } else {
+                if (this.connection.readyState === WebSocket.OPEN) {
+                    this.connection.close();
+                    this.forceUpdate();
+                }
+                return;
             }
+        }
+        const ip = prompt("Enter IP address of Quest/machine running game:");
+        if (!ip) {
             return;
         }
-        const url = prompt("Specify the WebSocket URL:");
-        if (!url) {
-            return;
+        this.connectToIp(ip);
+    }
+
+    private connectToIp(ip: string, isAutoconnect = false) {
+        if (this.connectTimeout) {
+            clearTimeout(this.connectTimeout);
         }
+        const url = `ws://${ip}:6162`;
         try {
+            this.isAutoconnecting = isAutoconnect;
             this.connection = new WebSocket(url);
         } catch (e) {
             toast.error(`Failed to connect: ${e}`);
+            this.isAutoconnecting = false;
+            this.scheduleAutoConnect();
             throw e;
         }
         this.forceUpdate();
         let wasConnected = false;
         this.connection.onopen = (_) => {
+            this.isAutoconnecting = false;
             wasConnected = true;
             toast.info("Connected to server");
             this.forceUpdate();
@@ -277,6 +309,7 @@ export class TimerView extends React.Component<Props, State> {
             }
             this.connection = null;
             this.forceUpdate();
+            this.scheduleAutoConnect();
         };
     }
 
