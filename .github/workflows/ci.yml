@@ -78,7 +78,6 @@ jobs:
         wasm-opt -O4 "$WASM_FILE" -o "$WASM_FILE"
 
     - name: Bundle pages
-      if: ${{ steps.deploy_pages.outputs.result == 'true' }}
       run: |
         set -eux
         mkdir -p ./vr.jf.id.au/dist/vr.jf.id.au/htdocs
