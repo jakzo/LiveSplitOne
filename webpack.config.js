@@ -74,7 +74,7 @@ export default async (env, argv) => {
             ...(isProduction ? [new CleanWebpackPlugin()] : []),
             new FaviconsWebpackPlugin({
                 logo: path.resolve("src/assets/icon.png"),
-                inject: true,
+                inject: false,
                 favicons: {
                     appName: "LiveSplit One",
                     appDescription: "A version of LiveSplit that works on a lot of platforms.",
