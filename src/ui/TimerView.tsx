@@ -125,7 +125,10 @@ export class TimerView extends React.Component<Props, State> {
                         <span className="livesplit-icon">
                             <img src={LiveSplitIcon} alt="LiveSplit Logo" />
                         </span>
-                        <h1> LiveSplit One</h1>
+                        <div>
+                            <h1> LiveSplit One</h1>
+                            <h3>VR Edition</h3>
+                        </div>
                     </div>
                     <hr className="livesplit-title-separator" />
                     <button onClick={(_) => this.props.callbacks.openSplitsView()}>
