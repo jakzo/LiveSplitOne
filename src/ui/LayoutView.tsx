@@ -28,6 +28,7 @@ interface Callbacks {
     openTimerView(): void,
     renderViewWithSidebar(renderedView: JSX.Element, sidebarContent: JSX.Element): JSX.Element,
     saveLayout(): void,
+    setDefaultServerIp(defaultServerIp?: string): void,
 }
 
 export class LayoutView extends React.Component<Props> {
