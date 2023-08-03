@@ -46,6 +46,7 @@ export class TimerView extends React.Component<Props, State> {
     private connectTimeout: Option<number>;
     private wasLastAutoConnectDefaultIp: boolean = false;
     private isAutoConnecting: boolean = false;
+    private userDisconnected: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -238,6 +239,9 @@ export class TimerView extends React.Component<Props, State> {
     }
 
     private scheduleAutoConnect() {
+        if (this.userDisconnected) {
+            return;
+        }
         this.connectTimeout = window.setTimeout(this.autoConnect, 5000);
     }
 
@@ -255,6 +259,7 @@ export class TimerView extends React.Component<Props, State> {
                     this.connection = null;
                 } catch {}
             } else {
+                this.userDisconnected = true;
                 if (this.connection.readyState === WebSocket.OPEN) {
                     this.connection.close();
                     this.forceUpdate();
