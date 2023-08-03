@@ -1,7 +1,7 @@
-@use "sass:math";
+@use 'sass:math';
 
-@import "Toggle";
-@import "variables";
+@import 'Toggle';
+@import 'variables';
 
 $header-font-size: 24px;
 
@@ -32,8 +32,7 @@ $header-font-size: 24px;
       }
     }
 
-    h1,
-    h2 {
+    h1, h2 {
       font-size: $header-font-size;
       text-align: center;
       margin-top: $ui-large-margin;

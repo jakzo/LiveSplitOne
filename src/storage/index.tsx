@@ -230,3 +230,15 @@ export async function loadSplitsKey(): Promise<number | undefined> {
 
     return await db.get("settings", "splitsKey");
 }
+
+export async function storeDefaultServerIp(defaultServerIp?: string) {
+    const db = await getDb();
+
+    await db.put("settings", defaultServerIp, "defaultServerIp");
+}
+
+export async function loadDefaultServerIp(): Promise<string | undefined> {
+    const db = await getDb();
+
+    return await db.get("settings", "defaultServerIp");
+}

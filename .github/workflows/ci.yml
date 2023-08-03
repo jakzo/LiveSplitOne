@@ -77,6 +77,11 @@ jobs:
         WASM_FILE=$(ls dist/*.wasm)
         wasm-opt -O4 "$WASM_FILE" -o "$WASM_FILE"
 
+    - name: Fix webmanifest for InfinityFree
+      run: |
+        mv ./dist/assets/manifest.webmanifest ./dist/assets/manifest.webmanifest.json
+        sed -i 's|manifest.webmanifest|manifest.webmanifest.json|g' index.html
+
     - name: Upload to vr.jf.id.au
       uses: SamKirkland/FTP-Deploy-Action@v4.3.4
       with:

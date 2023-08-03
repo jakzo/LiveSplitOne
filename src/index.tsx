@@ -25,6 +25,7 @@ try {
             layout,
             hotkeys,
             layoutWidth,
+            defaultServerIp,
         } = await LiveSplit.loadStoredData();
 
         function requestWakeLock() {
@@ -51,6 +52,7 @@ try {
                     hotkeys={hotkeys}
                     splitsKey={splitsKey}
                     layoutWidth={layoutWidth}
+                    defaultServerIp={defaultServerIp}
                 />
                 <ToastContainer
                     position={toast.POSITION.BOTTOM_RIGHT}

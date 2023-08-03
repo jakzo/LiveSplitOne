@@ -46,6 +46,7 @@ export interface Props {
     hotkeys?: Storage.HotkeyConfigSettings,
     layoutWidth: number,
     splitsKey?: number,
+    defaultServerIp?: string,
 }
 
 export interface State {
@@ -61,6 +62,7 @@ export interface State {
     sidebarTransitionsEnabled: boolean,
     storedLayoutWidth: number,
     timer: SharedTimer,
+    defaultServerIp?: string,
 }
 
 export let hotkeySystem: Option<HotkeySystem> = null;
@@ -72,6 +74,7 @@ export class LiveSplit extends React.Component<Props, State> {
         const layout = await Storage.loadLayout();
         const hotkeys = await Storage.loadHotkeys();
         const layoutWidth = await Storage.loadLayoutWidth();
+        const defaultServerIp = await Storage.loadDefaultServerIp();
 
         return {
             splits,
@@ -79,6 +82,7 @@ export class LiveSplit extends React.Component<Props, State> {
             layout,
             hotkeys,
             layoutWidth,
+            defaultServerIp,
         };
     }
 
@@ -158,6 +162,7 @@ export class LiveSplit extends React.Component<Props, State> {
             timer,
             hotkeySystem,
             openedSplitsKey: props.splitsKey,
+            defaultServerIp: props.defaultServerIp,
         };
 
         this.mediaQueryChanged = this.mediaQueryChanged.bind(this);
@@ -251,6 +256,7 @@ export class LiveSplit extends React.Component<Props, State> {
                 sidebarOpen={this.state.sidebarOpen}
                 timer={this.state.timer}
                 callbacks={this}
+                defaultServerIp={this.state.defaultServerIp}
             />;
         } else if (this.state.menu.kind === MenuKind.Layout) {
             return <LayoutView
@@ -409,6 +415,13 @@ export class LiveSplit extends React.Component<Props, State> {
         });
         if (openedSplitsKey !== undefined) {
             Storage.storeSplitsKey(openedSplitsKey);
+        }
+    }
+
+    public setDefaultServerIp(defaultServerIp?: string) {
+        this.setState({ defaultServerIp });
+        if (defaultServerIp !== undefined) {
+            Storage.storeDefaultServerIp(defaultServerIp);
         }
     }
 

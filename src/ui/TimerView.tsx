@@ -22,6 +22,7 @@ export interface Props {
     sidebarOpen: boolean,
     timer: SharedTimer,
     callbacks: Callbacks,
+    defaultServerIp?: string,
 }
 export interface State {
     comparison: Option<string>,
@@ -37,12 +38,14 @@ interface Callbacks {
     openSplitsView(): void,
     openSettingsEditor(): void,
     renderViewWithSidebar(renderedView: JSX.Element, sidebarContent: JSX.Element): JSX.Element,
+    setDefaultServerIp(defaultServerIp?: string): void,
 }
 
 export class TimerView extends React.Component<Props, State> {
     private connection: Option<WebSocket>;
     private connectTimeout: Option<number>;
-    private isAutoconnecting: boolean = false;
+    private wasLastAutoConnectDefaultIp: boolean = false;
+    private isAutoConnecting: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -127,7 +130,7 @@ export class TimerView extends React.Component<Props, State> {
                         </span>
                         <div>
                             <h1> LiveSplit One</h1>
-                            <h3>VR Edition</h3>
+                            <h4>VR Edition</h4>
                         </div>
                     </div>
                     <hr className="livesplit-title-separator" />
@@ -184,7 +187,7 @@ export class TimerView extends React.Component<Props, State> {
                     <button onClick={(_) => this.connectToServerOrDisconnect()}>
                         {
                             (() => {
-                                const connectionState = (this.isAutoconnecting ? null : this.connection?.readyState) ?? WebSocket.CLOSED;
+                                const connectionState = (this.isAutoConnecting ? null : this.connection?.readyState) ?? WebSocket.CLOSED;
                                 switch (connectionState) {
                                     case WebSocket.OPEN:
                                         return <div>
@@ -235,12 +238,18 @@ export class TimerView extends React.Component<Props, State> {
     }
 
     private scheduleAutoConnect() {
-        this.connectTimeout = window.setTimeout(() => this.connectToIp("127.0.0.1", true), 5000);
+        this.connectTimeout = window.setTimeout(this.autoConnect, 5000);
     }
+
+    private autoConnect = () => {
+        const ip = (!this.wasLastAutoConnectDefaultIp && this.props.defaultServerIp) || "127.0.0.1";
+        this.wasLastAutoConnectDefaultIp = !this.wasLastAutoConnectDefaultIp;
+        this.connectToIp(ip, true);
+    };
 
     private connectToServerOrDisconnect() {
         if (this.connection) {
-            if (this.isAutoconnecting) {
+            if (this.isAutoConnecting) {
                 try {
                     this.connection.close();
                     this.connection = null;
@@ -253,10 +262,11 @@ export class TimerView extends React.Component<Props, State> {
                 return;
             }
         }
-        const ip = prompt("Enter IP address of Quest/machine running game:");
+        const ip = prompt("Enter IP address of Quest/machine running game:", this.props.defaultServerIp);
         if (!ip) {
             return;
         }
+        this.props.callbacks.setDefaultServerIp(ip);
         this.connectToIp(ip);
     }
 
@@ -266,18 +276,18 @@ export class TimerView extends React.Component<Props, State> {
         }
         const url = `ws://${ip}:6162`;
         try {
-            this.isAutoconnecting = isAutoconnect;
+            this.isAutoConnecting = isAutoconnect;
             this.connection = new WebSocket(url);
         } catch (e) {
             toast.error(`Failed to connect: ${e}`);
-            this.isAutoconnecting = false;
+            this.isAutoConnecting = false;
             this.scheduleAutoConnect();
             throw e;
         }
         this.forceUpdate();
         let wasConnected = false;
         this.connection.onopen = (_) => {
-            this.isAutoconnecting = false;
+            this.isAutoConnecting = false;
             wasConnected = true;
             toast.info("Connected to server");
             this.forceUpdate();
@@ -291,9 +301,15 @@ export class TimerView extends React.Component<Props, State> {
             if (typeof e.data === "string") {
                 const [command, ...args] = e.data.split(" ");
                 switch (command) {
-                    case "start": this.start(); break;
+                    case "start":
+                        this.switchToGameTimeIfTimerStopped();
+                        this.start();
+                        break;
                     case "split": this.split(); break;
-                    case "splitorstart": this.splitOrStart(); break;
+                    case "splitorstart":
+                        this.switchToGameTimeIfTimerStopped();
+                        this.splitOrStart();
+                        break;
                     case "reset": this.reset(); break;
                     case "togglepause": this.togglePauseOrStart(); break;
                     case "undo": this.undoSplit(); break;
@@ -316,6 +332,13 @@ export class TimerView extends React.Component<Props, State> {
         };
     }
 
+    private switchToGameTimeIfTimerStopped() {
+        if (this.props.timer.readWith((t) => t.currentSplitIndex() === -1)) {
+            this.setCurrentTimingMethod(TimingMethod.GameTime);
+            this.updateSidebar();
+        }
+      }
+    
     private writeWith<T>(action: (timer: TimerRefMut) => T): T {
         return this.props.timer.writeWith(action);
     }
