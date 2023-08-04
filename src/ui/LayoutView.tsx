@@ -27,7 +27,8 @@ interface Callbacks {
     openSettingsEditor(): void,
     openTimerView(): void,
     renderViewWithSidebar(renderedView: JSX.Element, sidebarContent: JSX.Element): JSX.Element,
-    saveLayout(): void,
+    saveLayout(): Promise<void>,
+    saveSplits(): Promise<void>,
     setDefaultServerIp(defaultServerIp?: string): void,
 }
 
