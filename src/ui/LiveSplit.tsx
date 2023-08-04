@@ -316,6 +316,18 @@ export class LiveSplit extends React.Component<Props, State> {
         this.state.hotkeySystem.activate();
     }
 
+    public async saveSplits() {
+        await Storage.storeSplits(
+            (callback) => {
+                this.state.timer.writeWith((timer) => {
+                    callback(timer.getRun(), timer.saveAsLssBytes());
+                    timer.markAsUnmodified();
+                });
+            },
+            this.state.openedSplitsKey,
+        );
+    }
+
     public openSplitsView() {
         this.setState({
             menu: { kind: MenuKind.Splits },

@@ -39,6 +39,8 @@ interface Callbacks {
     openSettingsEditor(): void,
     renderViewWithSidebar(renderedView: JSX.Element, sidebarContent: JSX.Element): JSX.Element,
     setDefaultServerIp(defaultServerIp?: string): void,
+    saveSplits(): Promise<void>,
+    saveLayout(): Promise<void>,
 }
 
 export class TimerView extends React.Component<Props, State> {
@@ -47,6 +49,7 @@ export class TimerView extends React.Component<Props, State> {
     private wasLastAutoConnectDefaultIp: boolean = false;
     private isAutoConnecting: boolean = false;
     private userDisconnected: boolean = false;
+    private isTimerRunning: boolean = false;
 
     constructor(props: Props) {
         super(props);
@@ -92,9 +95,15 @@ export class TimerView extends React.Component<Props, State> {
                     }}
                 >
                     <AutoRefreshLayout
-                        getState={() => this.readWith(
-                            (t) => this.props.layout.updateStateAsJson(this.props.layoutState, t),
-                        )}
+                        getState={() => {
+                            const state = this.readWith(
+                                (t) => this.props.layout.updateStateAsJson(this.props.layoutState, t),
+                            );
+                            const timer = state.components.find((component: any) => component.Timer)?.Timer;
+                            const isTimerRunning = timer.updates_frequently ?? false;
+                            this.onTimerRunning(isTimerRunning);
+                            return state;
+                        }}
                         allowResize={this.props.isDesktop}
                         width={this.props.layoutWidth}
                         onResize={(width) => this.props.callbacks.onResize(width)}
@@ -236,6 +245,17 @@ export class TimerView extends React.Component<Props, State> {
                 });
             }
         }
+    }
+
+    private onTimerRunning(isRunning: boolean) {
+        if (isRunning === this.isTimerRunning) {
+            return;
+        }
+        if (!isRunning) {
+            this.props.callbacks.saveSplits();
+            this.props.callbacks.saveLayout();
+        }
+        this.isTimerRunning = isRunning;
     }
 
     private scheduleAutoConnect() {
