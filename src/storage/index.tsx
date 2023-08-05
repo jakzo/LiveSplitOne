@@ -1,7 +1,7 @@
 import { openDB, IDBPDatabase } from "idb";
 import { Option, assert } from "../util/OptionUtil";
 import { RunRef, Run } from "../livesplit-core";
-import { bonelabLss } from "../util/BonelabSplits";
+import { bonelabLs1l, bonelabLss } from "../util/Bonelab";
 
 export type HotkeyConfigSettings = unknown;
 export type LayoutSettings = unknown;
@@ -82,9 +82,7 @@ async function getDb(): Promise<IDBPDatabase<unknown>> {
                     }
 
                     const layout = localStorage.getItem("layout");
-                    if (layout) {
-                        settingsStore.put(JSON.parse(layout), "layout");
-                    }
+                    settingsStore.put(layout ? JSON.parse(layout) : bonelabLs1l, "layout");
 
                     const hotkeys = localStorage.getItem("settings");
                     if (hotkeys) {

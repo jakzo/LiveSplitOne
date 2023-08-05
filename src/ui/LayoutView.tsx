@@ -69,7 +69,10 @@ export class LayoutView extends React.Component<Props> {
                     <i className="fa fa-sync" aria-hidden="true" /> Default
                 </button>
                 <hr />
-                <button onClick={(_) => this.props.callbacks.openTimerView()}>
+                <button onClick={(_) => {
+                    this.props.callbacks.saveLayout();
+                    this.props.callbacks.openTimerView();
+                }}>
                     <i className="fa fa-caret-left" aria-hidden="true" /> Back
                 </button>
             </div>
